@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 
 from rag_core.embeddings.base import EmbeddingProvider
+from rag_core.exceptions import ChunkingError
 from rag_core.models import Document, RAGResponse
 from rag_core.pipeline import RAGPipeline
 from rag_core.stores.memory import InMemoryStore
@@ -235,8 +236,8 @@ class TestRAGPipeline:
         fake_provider: FakeEmbeddingProvider,
         store: InMemoryStore,
     ) -> None:
-        """An invalid chunk strategy should raise ValueError."""
-        with pytest.raises(ValueError, match="Unknown chunk strategy"):
+        """An invalid chunk strategy should raise ChunkingError."""
+        with pytest.raises(ChunkingError, match="Unknown chunk strategy"):
             RAGPipeline(
                 embedding_provider=fake_provider,
                 store=store,
