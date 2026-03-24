@@ -9,8 +9,6 @@ from __future__ import annotations
 import logging
 from typing import Literal
 
-logger = logging.getLogger(__name__)
-
 from rag_core.chunkers.base import BaseChunker
 from rag_core.chunkers.fixed import FixedSizeChunker
 from rag_core.chunkers.recursive import RecursiveChunker
@@ -21,6 +19,8 @@ from rag_core.models import Chunk, Document, RAGResponse
 from rag_core.prompts.builder import PromptBuilder
 from rag_core.retrieval.retriever import Retriever
 from rag_core.stores.base import VectorStore
+
+logger = logging.getLogger(__name__)
 
 
 class RAGPipeline:

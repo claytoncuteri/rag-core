@@ -14,7 +14,7 @@ __all__ = [
 
 # PDFLoader requires pypdf, so import it conditionally
 try:
-    from rag_core.loaders.pdf import PDFLoader
+    from rag_core.loaders.pdf import PDFLoader  # noqa: F401
 
     __all__.append("PDFLoader")
 except ImportError:

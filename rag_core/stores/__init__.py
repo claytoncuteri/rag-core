@@ -9,7 +9,7 @@ __all__ = [
 ]
 
 try:
-    from rag_core.stores.chroma import ChromaStore
+    from rag_core.stores.chroma import ChromaStore  # noqa: F401
 
     __all__.append("ChromaStore")
 except ImportError:

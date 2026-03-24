@@ -6,11 +6,11 @@ import hashlib
 import logging
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
-
 import numpy as np
 
 from rag_core.embeddings.base import EmbeddingProvider
+
+logger = logging.getLogger(__name__)
 
 
 class EmbeddingCache(EmbeddingProvider):

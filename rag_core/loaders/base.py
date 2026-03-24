@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import logging
-import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
-
 from rag_core.exceptions import DocumentLoadError
 from rag_core.models import Document
+
+logger = logging.getLogger(__name__)
 
 
 class BaseLoader(ABC):

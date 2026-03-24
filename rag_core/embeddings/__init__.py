@@ -10,14 +10,14 @@ __all__ = [
 
 # Optional providers that require extra dependencies
 try:
-    from rag_core.embeddings.openai_embeddings import OpenAIEmbeddings
+    from rag_core.embeddings.openai_embeddings import OpenAIEmbeddings  # noqa: F401
 
     __all__.append("OpenAIEmbeddings")
 except ImportError:
     pass
 
 try:
-    from rag_core.embeddings.local_embeddings import LocalEmbeddings
+    from rag_core.embeddings.local_embeddings import LocalEmbeddings  # noqa: F401
 
     __all__.append("LocalEmbeddings")
 except ImportError:
