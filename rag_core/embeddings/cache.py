@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 import numpy as np
 
@@ -82,12 +85,15 @@ class EmbeddingCache(EmbeddingProvider):
                 uncached_indices.append(i)
 
         if uncached_texts:
+            logger.debug("Cache miss: computing %d embeddings", len(uncached_texts))
             new_embeddings = self._provider.embed(uncached_texts)
             for j, idx in enumerate(uncached_indices):
                 key = self._make_key(uncached_texts[j])
                 embedding = new_embeddings[j]
                 self._cache[key] = embedding
                 results[idx] = embedding
+        else:
+            logger.debug("Cache hit: all %d embeddings served from cache", len(texts))
 
         return np.stack(results, axis=0)
 

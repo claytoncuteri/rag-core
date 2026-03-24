@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from rag_core.embeddings.base import EmbeddingProvider
 from rag_core.stores.base import VectorStore
+
+logger = logging.getLogger(__name__)
 
 
 class Retriever:
@@ -46,5 +49,8 @@ class Retriever:
             A list of result dicts from the vector store, each containing
             "id", "score", "metadata", and "document" keys.
         """
+        logger.debug("Embedding query: '%s'", query[:80])
         query_embedding = self.embedding_provider.embed_query(query)
-        return self.store.search(query_embedding=query_embedding, top_k=top_k)
+        results = self.store.search(query_embedding=query_embedding, top_k=top_k)
+        logger.debug("Retrieved %d results (top score: %.3f)", len(results), results[0]["score"] if results else 0.0)
+        return results

@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from abc import ABC, abstractmethod
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from rag_core.exceptions import DocumentLoadError
 from rag_core.models import Document
@@ -69,10 +72,12 @@ class BaseLoader(ABC):
                 try:
                     docs = self.load(file_path)
                     documents.extend(docs)
-                except Exception:
-                    # Skip files that fail to load
+                    logger.debug("Loaded %s (%d documents)", file_path.name, len(docs))
+                except Exception as exc:
+                    logger.warning("Failed to load %s: %s", file_path, exc)
                     continue
 
+        logger.info("Loaded %d documents from %s", len(documents), dir_path)
         return documents
 
     def _validate_file(self, path: str | Path) -> Path:

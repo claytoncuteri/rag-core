@@ -6,7 +6,10 @@ storage, and retrieval into a single interface.
 
 from __future__ import annotations
 
+import logging
 from typing import Literal
+
+logger = logging.getLogger(__name__)
 
 from rag_core.chunkers.base import BaseChunker
 from rag_core.chunkers.fixed import FixedSizeChunker
@@ -69,6 +72,11 @@ class RAGPipeline:
         self._prompt_builder = PromptBuilder()
         self._chunks: list[Chunk] = []
 
+        logger.info(
+            "Pipeline initialized: strategy=%s, chunk_size=%d, overlap=%d",
+            chunk_strategy, chunk_size, chunk_overlap,
+        )
+
     @staticmethod
     def _build_chunker(
         strategy: str,
@@ -115,6 +123,8 @@ class RAGPipeline:
         Raises:
             PipelineError: If chunking, embedding, or storage fails.
         """
+        logger.info("Ingesting %d document(s)", len(documents))
+
         try:
             all_chunks: list[Chunk] = []
             for doc in documents:
@@ -122,13 +132,16 @@ class RAGPipeline:
                 all_chunks.extend(chunks)
 
             if not all_chunks:
+                logger.warning("No chunks produced from %d document(s)", len(documents))
                 return 0
 
+            logger.debug("Produced %d chunks from %d documents", len(all_chunks), len(documents))
             texts = [c.text for c in all_chunks]
         except Exception as exc:
             raise PipelineError(f"Failed to chunk documents: {exc}") from exc
 
         try:
+            logger.debug("Computing embeddings for %d chunks", len(texts))
             embeddings = self.embedding_provider.embed(texts)
         except Exception as exc:
             raise EmbeddingError(f"Failed to compute embeddings: {exc}") from exc
@@ -147,6 +160,7 @@ class RAGPipeline:
             raise PipelineError(f"Failed to store vectors: {exc}") from exc
 
         self._chunks.extend(all_chunks)
+        logger.info("Ingestion complete: %d chunks stored", len(all_chunks))
         return len(all_chunks)
 
     def query(
@@ -171,12 +185,15 @@ class RAGPipeline:
         Raises:
             PipelineError: If retrieval or prompt building fails.
         """
+        logger.info("Query: '%s' (top_k=%d)", question[:80], top_k)
+
         try:
             results = self._retriever.retrieve(query=question, top_k=top_k)
         except Exception as exc:
             raise PipelineError(f"Retrieval failed for query: {exc}") from exc
 
         if not results:
+            logger.warning("No results found for query")
             return RAGResponse(
                 answer="",
                 sources=[],
@@ -216,6 +233,11 @@ class RAGPipeline:
             question=question,
             chunks=retrieved_chunks,
             template_name=template_name,
+        )
+
+        logger.info(
+            "Query complete: %d chunks retrieved, confidence=%.3f",
+            len(retrieved_chunks), confidence,
         )
 
         return RAGResponse(
