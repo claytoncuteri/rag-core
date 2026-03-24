@@ -1,5 +1,7 @@
 # rag-core
 
+[![CI](https://github.com/claytoncuteri/rag-core/actions/workflows/ci.yml/badge.svg)](https://github.com/claytoncuteri/rag-core/actions/workflows/ci.yml)
+
 A lightweight, modular RAG pipeline library for Python.
 
 ## Installation
