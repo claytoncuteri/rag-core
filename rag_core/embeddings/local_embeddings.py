@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 from rag_core.embeddings.base import EmbeddingProvider
+from rag_core.exceptions import EmbeddingError
 
 
 class LocalEmbeddings(EmbeddingProvider):
@@ -46,7 +47,7 @@ class LocalEmbeddings(EmbeddingProvider):
         try:
             from sentence_transformers import SentenceTransformer
         except ImportError:
-            raise ImportError(
+            raise EmbeddingError(
                 "sentence-transformers is required for LocalEmbeddings. "
                 "Install it with: pip install rag-core[local]"
             )

@@ -6,6 +6,7 @@ import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 
+from rag_core.exceptions import DocumentLoadError
 from rag_core.models import Document
 
 
@@ -36,8 +37,7 @@ class BaseLoader(ABC):
             multiple Documents from one file.
 
         Raises:
-            FileNotFoundError: If the file does not exist.
-            ValueError: If the file format is not supported.
+            DocumentLoadError: If the file cannot be loaded.
         """
 
     def load_directory(
@@ -55,11 +55,11 @@ class BaseLoader(ABC):
             A list of Document objects from all matching files.
 
         Raises:
-            NotADirectoryError: If dir_path is not a directory.
+            DocumentLoadError: If dir_path is not a directory.
         """
         dir_path = Path(dir_path)
         if not dir_path.is_dir():
-            raise NotADirectoryError(f"Not a directory: {dir_path}")
+            raise DocumentLoadError(f"Not a directory: {dir_path}")
 
         documents: list[Document] = []
         pattern = "**/*" if recursive else "*"
@@ -85,16 +85,15 @@ class BaseLoader(ABC):
             The resolved Path object.
 
         Raises:
-            FileNotFoundError: If the file does not exist.
-            ValueError: If the file extension is not supported.
+            DocumentLoadError: If the file does not exist or is unsupported.
         """
         path = Path(path)
         if not path.exists():
-            raise FileNotFoundError(f"File not found: {path}")
+            raise DocumentLoadError(f"File not found: {path}")
         if not path.is_file():
-            raise ValueError(f"Not a file: {path}")
+            raise DocumentLoadError(f"Not a file: {path}")
         if self.supported_extensions and path.suffix.lower() not in self.supported_extensions:
-            raise ValueError(
+            raise DocumentLoadError(
                 f"Unsupported file extension '{path.suffix}'. "
                 f"Supported: {self.supported_extensions}"
             )

@@ -13,6 +13,7 @@ from rag_core.chunkers.fixed import FixedSizeChunker
 from rag_core.chunkers.recursive import RecursiveChunker
 from rag_core.chunkers.semantic import SemanticChunker
 from rag_core.embeddings.base import EmbeddingProvider
+from rag_core.exceptions import ChunkingError, EmbeddingError, PipelineError
 from rag_core.models import Chunk, Document, RAGResponse
 from rag_core.prompts.builder import PromptBuilder
 from rag_core.retrieval.retriever import Retriever
@@ -93,7 +94,7 @@ class RAGPipeline:
             "recursive": RecursiveChunker,
         }
         if strategy not in chunkers:
-            raise ValueError(
+            raise ChunkingError(
                 f"Unknown chunk strategy '{strategy}'. "
                 f"Choose from: {', '.join(chunkers.keys())}"
             )
@@ -110,27 +111,40 @@ class RAGPipeline:
 
         Returns:
             The total number of chunks created and stored.
+
+        Raises:
+            PipelineError: If chunking, embedding, or storage fails.
         """
-        all_chunks: list[Chunk] = []
-        for doc in documents:
-            chunks = self._chunker.chunk(doc)
-            all_chunks.extend(chunks)
+        try:
+            all_chunks: list[Chunk] = []
+            for doc in documents:
+                chunks = self._chunker.chunk(doc)
+                all_chunks.extend(chunks)
 
-        if not all_chunks:
-            return 0
+            if not all_chunks:
+                return 0
 
-        texts = [c.text for c in all_chunks]
-        embeddings = self.embedding_provider.embed(texts)
+            texts = [c.text for c in all_chunks]
+        except Exception as exc:
+            raise PipelineError(f"Failed to chunk documents: {exc}") from exc
+
+        try:
+            embeddings = self.embedding_provider.embed(texts)
+        except Exception as exc:
+            raise EmbeddingError(f"Failed to compute embeddings: {exc}") from exc
 
         ids = [c.chunk_id for c in all_chunks]
         metadatas = [c.metadata for c in all_chunks]
 
-        self.store.add(
-            ids=ids,
-            embeddings=embeddings,
-            metadatas=metadatas,
-            documents=texts,
-        )
+        try:
+            self.store.add(
+                ids=ids,
+                embeddings=embeddings,
+                metadatas=metadatas,
+                documents=texts,
+            )
+        except Exception as exc:
+            raise PipelineError(f"Failed to store vectors: {exc}") from exc
 
         self._chunks.extend(all_chunks)
         return len(all_chunks)
@@ -153,8 +167,14 @@ class RAGPipeline:
 
         Returns:
             A RAGResponse with retrieved chunks, sources, and confidence.
+
+        Raises:
+            PipelineError: If retrieval or prompt building fails.
         """
-        results = self._retriever.retrieve(query=question, top_k=top_k)
+        try:
+            results = self._retriever.retrieve(query=question, top_k=top_k)
+        except Exception as exc:
+            raise PipelineError(f"Retrieval failed for query: {exc}") from exc
 
         if not results:
             return RAGResponse(

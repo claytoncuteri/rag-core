@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 from rag_core.embeddings.base import EmbeddingProvider
+from rag_core.exceptions import EmbeddingError
 
 try:
     import openai
@@ -38,7 +39,7 @@ class OpenAIEmbeddings(EmbeddingProvider):
         batch_size: int = 100,
     ) -> None:
         if openai is None:
-            raise ImportError(
+            raise EmbeddingError(
                 "openai is required for OpenAIEmbeddings. "
                 "Install it with: pip install rag-core[openai]"
             )

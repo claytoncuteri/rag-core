@@ -6,6 +6,7 @@ from typing import Any
 
 import numpy as np
 
+from rag_core.exceptions import StoreError
 from rag_core.stores.base import VectorStore
 
 try:
@@ -39,7 +40,7 @@ class ChromaStore(VectorStore):
         persist_directory: str | None = None,
     ) -> None:
         if chromadb is None:
-            raise ImportError(
+            raise StoreError(
                 "chromadb is required for ChromaStore. "
                 "Install it with: pip install rag-core[chroma]"
             )
